@@ -1,6 +1,6 @@
 Email Encoder Bundle
 ====================
 
-Put it on Github so everybody can contribute code changes.
+Sharing the code of this WordPress plugin. Now everybody can contribute their improvements, bug fixes and new features.
 
 See http://wordpress.org/plugins/email-encoder-bundle/

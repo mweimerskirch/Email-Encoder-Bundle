@@ -2,37 +2,38 @@
 Contributors: freelancephp
 Tags: email address, protect, antispam, mailto, spambot, secure, e-mail, email, mail, obfuscate, encode, encoder, encrypt, hide, bot, crawl, spider, robots, spam, protection, harvest, harvesting, security
 Requires at least: 3.4.0
-Tested up to: 3.8.0
-Stable tag: 1.0.2
+Tested up to: 3.8.1
+Stable tag: 1.1.0
 
-Encode mailto links, email addresses or any text (like phone numbers) and hide them from spambots. Easy to use, plugin works directly when activated.
+Encode mailto links, email addresses or any text (like phone numbers) and hide them from spambots. All mailto links in your posts, pages, comments and (text) widgets will be protected immediatly after activation.
 
 == Description ==
 
-Encode mailto links, email addresses or any text (like phone numbers) and hide them from spambots. Easy to use, plugin works directly when activated.
+Encode mailto links, email addresses or any text (like phone numbers) and hide them from spambots. All mailto links in your posts, pages, comments and (text) widgets will be protected immediatly after activation.
 
 = Features =
-* Protect mailto links and plain email addresses
-* Automatically or with shortcodes
-* Scan posts, widgets and comments
-* Also protect RSS feeds
-
-= Some extra features =
-* Encode any text, like phone numbers
-* Template functions
-* Manually create protected links with the Encoder Form
-* And more...
+* Protect mailto links
+* Protect plain email addresses
+* Protect your RSS feeds
+* Encode any text (like phone numbers)
+* Shortcodes, template functions, action and filter hooks, Encoder Form and more...
 
 = Easy to use  =
-The plugin works directly when activated. If you like you can set many options in the Admin Panel.
+The plugin works out-of-the-box. All mailto links in your posts, pages, comments and (text) widgets will be encoded (by default).
+If you also want to encode plain email address as well, you have to check that option.
 
-= Support =
+= Help =
 * Documentation - Check the Help tab on the plugin Admin page
 * [FAQ](http://wordpress.org/extend/plugins/email-encoder-bundle/faq/)
 * [Report a problem](http://wordpress.org/support/plugin/email-encoder-bundle#postform)
 
+= Github =
+I published the code on [Github](https://github.com/freelancephp/Email-Encoder-Bundle) so anybody can commit code changes.
+
 = Like this plugin? =
-Please [rate this plugin](http://wordpress.org/support/view/plugin-reviews/email-encoder-bundle) or [post a comment](http://www.freelancephp.net/email-encoder-php-class-wp-plugin/) on my blog.
+No donation needed.
+If you want to support, just [rate this plugin](http://wordpress.org/support/view/plugin-reviews/email-encoder-bundle).
+And/or place [a comment on my blog](http://www.freelancephp.net/email-encoder-php-class-wp-plugin/).
 
 == Installation ==
 
@@ -68,10 +69,10 @@ There are 2 ways to solve this problem:
 
 You will have to use the template function `eeb_email()` or `eeb_content()`.
 For example, if your template contains:
-`echo get_post_meta($post->ID, 'emailaddress', TRUE);`
+`echo get_post_meta($post->ID, 'emailaddress', true);`
 
 Then change it to:
-`$emailaddress = get_post_meta($post->ID, 'emailaddress', TRUE);
+`$emailaddress = get_post_meta($post->ID, 'emailaddress', true);
 echo eeb_email($emailaddress, 'Mail Me');`
 
 = How to create mailto links that opens in a new window? =
@@ -120,6 +121,10 @@ It's possible to filter all widgets by using the Widget Logic plugin and activat
 * Title icon on Admin Options Page was made by [Jack Cai](http://www.doublejdesign.co.uk/)
 
 == Changelog ==
+
+= 1.1.0 =
+* Added filters for changing regular expression for mailto links and email addresses
+* Fixed bug don't encode when loading admin panel
 
 = 1.0.2 =
 * Fixed bug wrong "settings" link

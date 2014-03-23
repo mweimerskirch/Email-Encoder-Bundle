@@ -3,19 +3,22 @@
 /**
  * Class Eeb_Admin
  *
- * @description Contains all code nescessary for the Admin part
+ * Contains all code nescessary for the Admin part
+ *
+ * @abstract
  *
  * @package Email_Encoder_Bundle
  * @category WordPress Plugins
  */
 if (!class_exists('Eeb_Admin')):
 
-class Eeb_Admin {
+abstract class Eeb_Admin {
 
     /**
      * @var array
      */
     private $default_options = array(
+        'version' => null,
         'method' => 'enc_ascii',
         'encode_mailtos' => 1,
         'encode_emails' => 0,
@@ -59,14 +62,14 @@ class Eeb_Admin {
     /**
      * @var boolean
      */
-    protected $is_admin_user = FALSE;
+    private $initial_metabox_settings = false;
 
     /**
      * Constructor
      */
-    public function __construct() {
+    protected function __construct() {
         // load text domain for translations
-        load_plugin_textdomain(EMAIL_ENCODER_BUNDLE_DOMAIN, FALSE, dirname(plugin_basename(EMAIL_ENCODER_BUNDLE_FILE)) . '/languages/');
+        load_plugin_textdomain(EMAIL_ENCODER_BUNDLE_DOMAIN, false, dirname(plugin_basename(EMAIL_ENCODER_BUNDLE_FILE)) . '/languages/');
 
         // set methods
         $this->methods = array(
@@ -100,14 +103,13 @@ class Eeb_Admin {
         add_action('wp', array($this, 'wp'));
         add_action('admin_init', array($this, 'admin_init'));
         add_action('admin_menu', array($this, 'admin_menu'));
-    }
+   }
 
     /**
      * Set options from save values or defaults
      */
     private function set_options() {
-        $previous_version = get_option('eeb_version');
-        $upgrade = FALSE;
+        $upgrade = false;
 
         // first set defaults
         $this->options = $this->default_options;
@@ -118,28 +120,39 @@ class Eeb_Admin {
         // backwards compatible (old values)
         if (empty($saved_options)) {
             $saved_options = get_option(EMAIL_ENCODER_BUNDLE_KEY . 'options');
+
+            // cleanup old values
+            delete_option(EMAIL_ENCODER_BUNDLE_KEY . 'options');
+        }
+
+        $version = get_option('eeb_version');
+        if ($version !== false) {
+            $saved_options['version'] = $version;
+
+            // cleanup old value
+            delete_option('eeb_version');
         }
 
         // set all options
         if (!empty($saved_options)) {
-            $upgrade = TRUE;
+            $upgrade = true;
 
             foreach ($saved_options AS $key => $value) {
                 $this->options[$key] = $value;
             }
         }
 
-        if ($previous_version != EMAIL_ENCODER_BUNDLE_VERSION) {
-            if (empty($previous_version)) {
+        if ($saved_options['version'] != EMAIL_ENCODER_BUNDLE_VERSION) {
+            if (empty($saved_options['version'])) {
                 if ($upgrade) {
                 // upgrade from version < 1.0.0
                     $this->options['support_deprecated_names'] = 1;
                     $this->options['shortcodes_in_widgets'] = 1;
 
-                    update_option(EMAIL_ENCODER_BUNDLE_OPTIONS_NAME, $this->options);
+                    //update_option(EMAIL_ENCODER_BUNDLE_OPTIONS_NAME, $this->options);
                 } else {
                 // first time
-
+                    $this->initial_metabox_settings = true;
                 }
             } else {
             // upgrading from version >= 1.0.0
@@ -147,7 +160,7 @@ class Eeb_Admin {
             }
 
             // update version
-            update_option('eeb_version', EMAIL_ENCODER_BUNDLE_VERSION);
+            update_option(EMAIL_ENCODER_BUNDLE_OPTIONS_NAME, $this->options);
         }
 
         // set encode method
@@ -155,7 +168,7 @@ class Eeb_Admin {
 
         // set widget_content filter of Widget Logic plugin
         $widget_logic_opts = get_option('widget_logic');
-        if (is_array($widget_logic_opts) AND key_exists('widget_logic-options-filter', $widget_logic_opts)) {
+        if (is_array($widget_logic_opts) && key_exists('widget_logic-options-filter', $widget_logic_opts)) {
             $this->options['widget_logic_filter'] = ($widget_logic_opts['widget_logic-options-filter'] == 'checked') ? 1 : 0;
         }
     }
@@ -179,17 +192,9 @@ class Eeb_Admin {
     /**
      * Callback Uninstall
      */
-    public static function uninstall() {
+    static public function uninstall() {
         delete_option(EMAIL_ENCODER_BUNDLE_OPTIONS_NAME);
         unregister_setting(EMAIL_ENCODER_BUNDLE_KEY, EMAIL_ENCODER_BUNDLE_OPTIONS_NAME);
-    }
-
-    /**
-     * Callback wp action
-     */
-    public function wp() {
-        // check admin
-        $this->is_admin_user = current_user_can('manage_options');
     }
 
     /**
@@ -223,10 +228,6 @@ class Eeb_Admin {
      * Callback admin_menu
      */
     public function admin_menu() {
-        if ($this->is_admin_user) {
-            return;
-        }
-
         // add page and menu item
         if ($this->options['own_admin_menu']) {
             // create main menu item
@@ -255,8 +256,8 @@ class Eeb_Admin {
         wp_enqueue_script('dashboard');
 
         // add script for ajax encoder
-//            wp_enqueue_script('email_encoder', plugins_url('js/src/email-encoder-bundle.js', EMAIL_ENCODER_BUNDLE_FILE), array('jquery'), EMAIL_ENCODER_BUNDLE_VERSION);
-//            wp_enqueue_script('email_encoder_admin', plugins_url('js/src/email-encoder-bundle-admin.js', EMAIL_ENCODER_BUNDLE_FILE), array('jquery'), EMAIL_ENCODER_BUNDLE_VERSION);
+        //wp_enqueue_script('email_encoder', plugins_url('js/src/email-encoder-bundle.js', EMAIL_ENCODER_BUNDLE_FILE), array('jquery'), EMAIL_ENCODER_BUNDLE_VERSION);
+        //wp_enqueue_script('email_encoder_admin', plugins_url('js/src/email-encoder-bundle-admin.js', EMAIL_ENCODER_BUNDLE_FILE), array('jquery'), EMAIL_ENCODER_BUNDLE_VERSION);
         wp_enqueue_script('email_encoder', plugins_url('js/email-encoder-bundle.min.js', EMAIL_ENCODER_BUNDLE_FILE), array('jquery'), EMAIL_ENCODER_BUNDLE_VERSION);
 
         // add help tabs
@@ -271,12 +272,13 @@ class Eeb_Admin {
         }
 
         // add meta boxes
-        add_meta_box('general_settings', __('General Settings', EMAIL_ENCODER_BUNDLE_DOMAIN), array($this, 'show_meta_box_content'), NULL, 'normal', 'core', array('general_settings'));
-        add_meta_box('advanced_settings', __('Advanced Settings', EMAIL_ENCODER_BUNDLE_DOMAIN), array($this, 'show_meta_box_content'), NULL, 'normal', 'core', array('advanced_settings'));
-        add_meta_box('admin_settings', __('Admin Settings', EMAIL_ENCODER_BUNDLE_DOMAIN), array($this, 'show_meta_box_content'), NULL, 'normal', 'core', array('admin_settings'));
-        add_meta_box('encode_form', __('Email Encoder Form', EMAIL_ENCODER_BUNDLE_DOMAIN), array($this, 'show_meta_box_content'), NULL, 'normal', 'core', array('encode_form'));
-        add_meta_box('this_plugin', __('Support', EMAIL_ENCODER_BUNDLE_DOMAIN), array($this, 'show_meta_box_content'), NULL, 'side', 'core', array('this_plugin'));
-        add_meta_box('other_plugins', __('Other Plugins', EMAIL_ENCODER_BUNDLE_DOMAIN), array($this, 'show_meta_box_content'), NULL, 'side', 'core', array('other_plugins'));
+        add_meta_box('main_settings', __('Main Settings', EMAIL_ENCODER_BUNDLE_DOMAIN), array($this, 'show_meta_box_content'), null, 'normal', 'core', array('main_settings'));
+        add_meta_box('additional_settings', __('Additional Settings', EMAIL_ENCODER_BUNDLE_DOMAIN), array($this, 'show_meta_box_content'), null, 'normal', 'core', array('additional_settings'));
+        add_meta_box('rss_settings', __('RSS Settings', EMAIL_ENCODER_BUNDLE_DOMAIN), array($this, 'show_meta_box_content'), null, 'normal', 'core', array('rss_settings'));
+        add_meta_box('admin_settings', __('Admin Settings', EMAIL_ENCODER_BUNDLE_DOMAIN), array($this, 'show_meta_box_content'), null, 'normal', 'core', array('admin_settings'));
+        add_meta_box('encode_form', __('Email Encoder Form', EMAIL_ENCODER_BUNDLE_DOMAIN), array($this, 'show_meta_box_content'), null, 'normal', 'core', array('encode_form'));
+        add_meta_box('this_plugin', __('Support', EMAIL_ENCODER_BUNDLE_DOMAIN), array($this, 'show_meta_box_content'), null, 'side', 'core', array('this_plugin'));
+        add_meta_box('other_plugins', __('Other Plugins', EMAIL_ENCODER_BUNDLE_DOMAIN), array($this, 'show_meta_box_content'), null, 'side', 'core', array('other_plugins'));
     }
 
     /**
@@ -295,12 +297,16 @@ class Eeb_Admin {
             </div>
             <?php endif; ?>
 
+            <?php if ($this->initial_metabox_settings): ?>
+                <script type="text/javascript">jQuery(function($){ $('#additional_settings, #rss_settings, #admin_settings, #encode_form').addClass('closed'); });</script>
+            <?php endif; ?>
+
             <form method="post" action="options.php">
                 <?php settings_fields(EMAIL_ENCODER_BUNDLE_KEY); ?>
 
                 <input type="hidden" name="<?php echo EMAIL_ENCODER_BUNDLE_KEY ?>_nonce" value="<?php echo wp_create_nonce(EMAIL_ENCODER_BUNDLE_KEY) ?>" />
-                <?php wp_nonce_field('closedpostboxes', 'closedpostboxesnonce', FALSE); ?>
-                <?php wp_nonce_field('meta-box-order', 'meta-box-order-nonce', FALSE); ?>
+                <?php wp_nonce_field('closedpostboxes', 'closedpostboxesnonce', false); ?>
+                <?php wp_nonce_field('meta-box-order', 'meta-box-order-nonce', false); ?>
 
                 <div id="poststuff">
                     <div id="post-body" class="metabox-holder columns-<?php echo 1 == get_current_screen()->get_columns() ? '1' : '2'; ?>">
@@ -330,26 +336,13 @@ class Eeb_Admin {
         $key = $meta_box['args'][0];
         $options = $this->options;
 
-        if ($key === 'general_settings') {
+        if ($key === 'main_settings') {
 ?>
             <?php if (is_plugin_active('wp-mailto-links/wp-mailto-links.php')): ?>
                 <p class="description"><?php _e('Warning: "WP Mailto Links"-plugin is also activated, which could cause conflicts.', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></p>
             <?php endif; ?>
             <fieldset class="options">
                 <table class="form-table">
-                <tr>
-                    <th><?php _e('Choose protection method', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></th>
-                    <td>
-                        <?php foreach ($this->methods AS $method => $info): ?>
-                            <label>
-                                <input type="radio" name="<?php echo EMAIL_ENCODER_BUNDLE_OPTIONS_NAME ?>[method]" class="protection-method" value="<?php echo $method ?>" <?php if ($this->method == $method) echo 'checked="checked"' ?> />
-                                <span><?php echo $info['name'] ?></span>
-                                - <span class="description"><?php echo $info['description'] ?></span>
-                            </label>
-                            <br/>
-                        <?php endforeach; ?>
-                    </td>
-                </tr>
                 <tr>
                     <th><?php _e('Choose what to protect', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></th>
                     <td>
@@ -366,7 +359,7 @@ class Eeb_Admin {
                     <th><?php _e('Apply on...', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></th>
                     <td>
                         <label><input type="checkbox" name="<?php echo EMAIL_ENCODER_BUNDLE_OPTIONS_NAME ?>[filter_posts]" value="1" <?php checked('1', (int) $options['filter_posts']); ?> />
-                                <span><?php _e('All posts', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></span>
+                                <span><?php _e('All posts and pages', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></span>
                             </label>
                         <br/><label><input type="checkbox" id="<?php echo EMAIL_ENCODER_BUNDLE_OPTIONS_NAME ?>[filter_comments]" name="<?php echo EMAIL_ENCODER_BUNDLE_OPTIONS_NAME ?>[filter_comments]" value="1" <?php checked('1', (int) $options['filter_comments']); ?> />
                             <span><?php _e('All comments', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></span></label>
@@ -375,27 +368,9 @@ class Eeb_Admin {
                     </td>
                 </tr>
                 <tr>
-                    <th><?php _e('Set <code>&lt;noscript&gt;</code> text', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></th>
-                    <td><label><input type="text" id="protection_text" class="regular-text" name="<?php echo EMAIL_ENCODER_BUNDLE_OPTIONS_NAME ?>[protection_text]" value="<?php echo $options['protection_text']; ?>" />
-                            <br/><span class="description"><?php _e('Used for the <code>&lt;noscript&gt;</code> fallback for JavaScrip methods.', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></span>
-                        </label>
-                    </td>
-                </tr>
-                <tr>
                     <th><?php _e('Add class to protected mailto links', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></th>
                     <td><label><input type="text" id="<?php echo EMAIL_ENCODER_BUNDLE_OPTIONS_NAME ?>[class_name]" class="regular-text" name="<?php echo EMAIL_ENCODER_BUNDLE_OPTIONS_NAME ?>[class_name]" value="<?php echo $options['class_name']; ?>" />
                         <br/><span class="description"><?php _e('All protected mailto links will get these class(es). Optional, else keep blank.', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></span></label></td>
-                </tr>
-                <tr>
-                    <th><?php _e('Exclude posts', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></th>
-                    <td>
-                        <label>
-                            <span><?php _e('Do <strong>not</strong> apply protection on posts or pages with the folllowing ID:', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></span>
-                            <br/><input type="text" id="<?php echo EMAIL_ENCODER_BUNDLE_OPTIONS_NAME ?>[skip_posts]" class="regular-text" name="<?php echo EMAIL_ENCODER_BUNDLE_OPTIONS_NAME ?>[skip_posts]" value="<?php echo $options['skip_posts']; ?>" />
-                            <br/><span class="description"><?php _e('Seperate Id\'s by comma, f.e.: 2, 7, 13, 32.', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></span>
-                            <br/><span class="description"><?php _e('Notice: shortcodes still work on these posts.', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></span>
-                        </label>
-                    </td>
                 </tr>
                 </table>
            </fieldset>
@@ -406,11 +381,9 @@ class Eeb_Admin {
             <br class="clear" />
 
 <?php
-        } else if ($key === 'advanced_settings') {
+        } else if ($key === 'rss_settings') {
 ?>
             <fieldset class="options">
-                <h4><?php _e('Protect RSS feed', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></h4>
-
                 <table class="form-table">
                 <tr>
                     <th><?php _e('Protect emails in RSS feeds', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></th>
@@ -432,11 +405,48 @@ class Eeb_Admin {
                     </td>
                 </tr>
                 </table>
+            </fieldset>
 
-                <h4><?php _e('Extra Settings', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></h4>
-
-
+            <p class="submit">
+                <input class="button-primary" type="submit" disabled="disabled" value="<?php _e('Save Changes') ?>" />
+            </p>
+            <br class="clear" />
+<?php
+        } else if ($key === 'additional_settings') {
+?>
+            <fieldset class="options">
                 <table class="form-table">
+                <tr>
+                    <th><?php _e('Choose protection method', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></th>
+                    <td>
+                        <?php foreach ($this->methods AS $method => $info): ?>
+                            <label>
+                                <input type="radio" name="<?php echo EMAIL_ENCODER_BUNDLE_OPTIONS_NAME ?>[method]" class="protection-method" value="<?php echo $method ?>" <?php if ($this->method == $method) echo 'checked="checked"' ?> />
+                                <span><?php echo $info['name'] ?></span>
+                                - <span class="description"><?php echo $info['description'] ?></span>
+                            </label>
+                            <br/>
+                        <?php endforeach; ?>
+                    </td>
+                </tr>
+                <tr>
+                    <th><?php _e('Set <code>&lt;noscript&gt;</code> text', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></th>
+                    <td><label><input type="text" id="protection_text" class="regular-text" name="<?php echo EMAIL_ENCODER_BUNDLE_OPTIONS_NAME ?>[protection_text]" value="<?php echo $options['protection_text']; ?>" />
+                            <br/><span class="description"><?php _e('Used for the <code>&lt;noscript&gt;</code> fallback for JavaScrip methods.', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></span>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <th><?php _e('Exclude posts', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></th>
+                    <td>
+                        <label>
+                            <span><?php _e('Do <strong>not</strong> apply protection on posts or pages with the folllowing ID:', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></span>
+                            <br/><input type="text" id="<?php echo EMAIL_ENCODER_BUNDLE_OPTIONS_NAME ?>[skip_posts]" class="regular-text" name="<?php echo EMAIL_ENCODER_BUNDLE_OPTIONS_NAME ?>[skip_posts]" value="<?php echo $options['skip_posts']; ?>" />
+                            <br/><span class="description"><?php _e('Seperate Id\'s by comma, f.e.: 2, 7, 13, 32.', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></span>
+                            <br/><span class="description"><?php _e('Notice: shortcodes still work on these posts.', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></span>
+                        </label>
+                    </td>
+                </tr>
                 <tr>
                     <th><?php _e('Use shortcodes in widgets', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></th>
                     <td>
@@ -463,8 +473,6 @@ class Eeb_Admin {
         } else if ($key === 'admin_settings') {
 ?>
             <fieldset class="options">
-                <h4><?php _e('Testing', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></h4>
-
                 <table class="form-table">
                 <tr>
                     <th><?php _e('Check "succesfully encoded"', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></th>
@@ -474,11 +482,6 @@ class Eeb_Admin {
                         </label>
                     </td>
                 </tr>
-                </table>
-
-                <h4><?php _e('Menu', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></h4>
-
-                <table class="form-table">
                 <tr>
                     <th><?php _e('Choose admin menu position', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></th>
                     <td><label><input type="checkbox" id="<?php echo EMAIL_ENCODER_BUNDLE_OPTIONS_NAME ?>[own_admin_menu]" name="<?php echo EMAIL_ENCODER_BUNDLE_OPTIONS_NAME ?>[own_admin_menu]" value="1" <?php checked('1', (int) $options['own_admin_menu']); ?> />
@@ -500,8 +503,6 @@ class Eeb_Admin {
 ?>
             <p><?php _e('If you like you can also create you own secure mailto links manually with this form. Just copy the generated code and put it on your post, page or template.', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></p>
 
-            <h4><?php _e('Encoder Form', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></h4>
-
             <hr style="border:1px solid #FFF; border-top:1px solid #EEE;" />
 
             <?php echo $this->get_encoder_form(); ?>
@@ -509,8 +510,6 @@ class Eeb_Admin {
             <hr style="border:1px solid #FFF; border-top:1px solid #EEE;"/>
 
             <p class="description"><?php _e('You can also put the encoder form on your site by using the shortcode <code>[eeb_form]</code> or the template function <code>eeb_form()</code>.', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></p>
-
-            <h4><?php _e('Settings') ?></h4>
 
             <fieldset class="options">
                 <table class="form-table">
@@ -587,9 +586,9 @@ class Eeb_Admin {
         $screen->set_help_sidebar($this->get_help_text('sidebar'));
 
         $screen->add_help_tab(array(
-            'id' => 'general',
-            'title'    => __('General', EMAIL_ENCODER_BUNDLE_DOMAIN),
-            'content' => $this->get_help_text('general'),
+            'id' => 'quickstart',
+            'title'    => __('Quick Start', EMAIL_ENCODER_BUNDLE_DOMAIN),
+            'content' => $this->get_help_text('quickstart'),
         ));
         $screen->add_help_tab(array(
             'id' => 'shortcodes',
@@ -602,9 +601,14 @@ class Eeb_Admin {
             'content' => $this->get_help_text('templatefunctions'),
         ));
         $screen->add_help_tab(array(
-            'id' => 'hooks',
-            'title'    => __('Action Hooks', EMAIL_ENCODER_BUNDLE_DOMAIN),
-            'content' => $this->get_help_text('hooks'),
+            'id' => 'actions',
+            'title'    => __('Action Hook', EMAIL_ENCODER_BUNDLE_DOMAIN),
+            'content' => $this->get_help_text('actions'),
+        ));
+        $screen->add_help_tab(array(
+            'id' => 'filters',
+            'title'    => __('Filter Hooks', EMAIL_ENCODER_BUNDLE_DOMAIN),
+            'content' => $this->get_help_text('filters'),
         ));
         $screen->add_help_tab(array(
             'id' => 'faq',
@@ -619,28 +623,16 @@ class Eeb_Admin {
      * @return string
      */
     private function get_help_text($key) {
-        if ($key === 'general') {
+        if ($key === 'quickstart') {
             $plugin_title = get_admin_page_title();
             $icon_url = plugins_url('images/icon-email-encoder-bundle.png', EMAIL_ENCODER_BUNDLE_FILE);
+            $quick_start_url = plugins_url('images/quick-start.png', EMAIL_ENCODER_BUNDLE_FILE);
             $version = EMAIL_ENCODER_BUNDLE_VERSION;
 
             $content = sprintf(__('<h3><img src="%s" width="16" height="16" /> %s - version %s</h3>'
-                     . '<p>Encode mailto links and (plain) email addresses on your site and hide them from spambots. Easy to use, plugin works directly when activated.</p>'
-                     . '<h4>Features</h4>'
-                     . '<ul>'
-                     . '<li>Protect mailto links and plain email addresses</li>'
-                     . '<li>Automatically or with shortcodes</li>'
-                     . '<li>Scan posts, widgets and comments</li>'
-                     . '<li>Also protect RSS feeds</li>'
-                     . '</ul>'
-                     . '<h4>Some extra features</h4>'
-                     . '<ul>'
-                     . '<li>Template functions</li>'
-                     . '<li>Encode all kind of text</li>'
-                     . '<li>Manually create protected links with the Encoder Form</li>'
-                     . '<li>And more...</li>'
-                     . '</ul>'
-                     , EMAIL_ENCODER_BUNDLE_DOMAIN), $icon_url, $plugin_title, $version);
+                     . '<p>The plugin works out-of-the-box. All mailto links in your posts, pages, comments and (text) widgets will be encoded (by default). <br/>If you also want to encode plain email address as well, you have to check the option.</p>'
+                     . '<img src="%s" width="600" height="273" />'
+                     , EMAIL_ENCODER_BUNDLE_DOMAIN), $icon_url, $plugin_title, $version, $quick_start_url);
         } else if ($key === 'shortcodes') {
             $content = __('<h3>Shortcodes</h3>'
                      . '<p>You can use these shortcodes within your post or page.</p>'
@@ -696,14 +688,33 @@ class Eeb_Admin {
                      . '}' . "\n"
                      . '&#63;></code></pre>'
                      , EMAIL_ENCODER_BUNDLE_DOMAIN);
-        } else if ($key === 'hooks') {
+        } else if ($key === 'actions') {
             $content = __('<h3>Action Hooks</h3>'
                      . '<h4>eeb_ready</h4>'
                      . '<p>Add extra code on initializing this plugin, like extra filters for encoding.</p>'
                      . '<pre><code><&#63;php' . "\n"
                      . 'add_action(\'eeb_ready\', \'extra_encode_filters\');' . "\n\n"
-                     . 'function extra_encode_filters(\$eeb_object) {' . "\n"
-                     . '    add_filter(\'some_filter\', array(\$eeb_object, \'callback_filter\'));' . "\n"
+                     . 'function extra_encode_filters($eeb_object) {' . "\n"
+                     . '    add_filter(\'some_filter\', array($eeb_object, \'callback_filter\'));' . "\n"
+                     . '}' . "\n"
+                     . '&#63;></code></pre>'
+                     , EMAIL_ENCODER_BUNDLE_DOMAIN);
+        } else if ($key === 'filters') {
+            $content = __('<h3>Filter Hooks</h3>'
+                     . '<h4>eeb_mailto_regexp</h4>'
+                     . '<p>You can change the regular expression used for searching mailto links.</p>'
+                     . '<pre><code><&#63;php' . "\n"
+                     . 'add_filter(\'eeb_mailto_regexp\', \'change_mailto_regexp\');' . "\n\n"
+                     . 'function change_mailto_regexp($regexp) {' . "\n"
+                     . '    return \'-your regular expression-\';' . "\n"
+                     . '}' . "\n"
+                     . '&#63;></code></pre>'
+                     . '<h4>eeb_email_regexp</h4>'
+                     . '<p>You can change the regular expression used for searching mailto links.</p>'
+                     . '<pre><code><&#63;php' . "\n"
+                     . 'add_filter(\'eeb_email_regexp\', \'change_email_regexp\');' . "\n\n"
+                     . 'function change_email_regexp($regexp) {' . "\n"
+                     . '    return \'-your regular expression-\';' . "\n"
                      . '}' . "\n"
                      . '&#63;></code></pre>'
                      , EMAIL_ENCODER_BUNDLE_DOMAIN);
@@ -718,9 +729,11 @@ class Eeb_Admin {
                      . '<li><a href="http://www.freelancephp.net/contact/" target="_blank">Contact</a></li>'
                      . '</ul>'
                      , EMAIL_ENCODER_BUNDLE_DOMAIN);
+        } else {
+            $content = '';
         }
 
-        return ((empty($content)) ? '' : __($content, EMAIL_ENCODER_BUNDLE_DOMAIN));
+        return $content;
     }
 
     /* -------------------------------------------------------------------------

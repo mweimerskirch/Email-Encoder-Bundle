@@ -10,7 +10,7 @@ if (!is_admin()):
 
     /**
      * Template function for encoding email
-     * @global EebSite $EebSite
+     * @global Eeb_Site $Eeb_Site
      * @param string $email
      * @param string $display  if non given will be same as email
      * @param string $extra_attrs  Optional
@@ -18,52 +18,52 @@ if (!is_admin()):
      * @return string
      */
     if (!function_exists('eeb_email')):
-        function eeb_email($email, $display = NULL, $extra_attrs = '', $method = NULL) {
-            global $EebSite;
-            return $EebSite->encode_email($email, $display, $extra_attrs, $method);
+        function eeb_email($email, $display = null, $extra_attrs = '', $method = null) {
+            global $Eeb_Site;
+            return $Eeb_Site->encode_email($email, $display, $extra_attrs, $method);
         }
     endif;
 
 
     /**
      * Template function for encoding content
-     * @global EebSite $EebSite
+     * @global Eeb_Site $Eeb_Site
      * @param string $content
-     * @param string $method Optional, default NULL
+     * @param string $method Optional, default null
      * @return string
      */
     if (!function_exists('eeb_content')):
-        function eeb_content($content, $method = NULL) {
-            global $EebSite;
-            return $EebSite->encode_content($content, $method);
+        function eeb_content($content, $method = null) {
+            global $Eeb_Site;
+            return $Eeb_Site->encode_content($content, $method);
         }
     endif;
 
     /**
      * Template function for encoding emails in the given content
-     * @global EebSite $EebSite
+     * @global Eeb_Site $Eeb_Site
      * @param string $content
-     * @param boolean $enc_tags Optional, default TRUE
-     * @param boolean $enc_mailtos  Optional, default TRUE
-     * @param boolean $enc_plain_emails Optional, default TRUE
+     * @param boolean $enc_tags Optional, default true
+     * @param boolean $enc_mailtos  Optional, default true
+     * @param boolean $enc_plain_emails Optional, default true
      * @return string
      */
     if (!function_exists('eeb_email_filter')):
-        function eeb_email_filter($content, $enc_tags = TRUE, $enc_mailtos = TRUE, $enc_plain_emails = TRUE) {
-            global $EebSite;
-            return $EebSite->encode_email_filter($content, $enc_tags, $enc_mailtos, $enc_plain_emails);
+        function eeb_email_filter($content, $enc_tags = true, $enc_mailtos = true, $enc_plain_emails = true) {
+            global $Eeb_Site;
+            return $Eeb_Site->encode_email_filter($content, $enc_tags, $enc_mailtos, $enc_plain_emails);
         }
     endif;
 
     /**
      * Template function for getting HTML of the encoder form (to put it on the site)
-     * @global EebSite $EebSite
+     * @global Eeb_Site $Eeb_Site
      * @return string
      */
     if (!function_exists('eeb_form')):
         function eeb_form() {
-            global $EebSite;
-            return $EebSite->get_encoder_form();
+            global $Eeb_Site;
+            return $Eeb_Site->get_encoder_form();
         }
     endif;
 

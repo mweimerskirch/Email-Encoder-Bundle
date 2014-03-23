@@ -4,7 +4,7 @@ Plugin Name: Email Encoder Bundle - Protect Email Address
 Plugin URI: http://www.freelancephp.net/email-encoder-php-class-wp-plugin/
 Description: Protect email addresses on your site and hide them from spambots by using an encoding method. Easy to use, flexible .
 Author: Victor Villaverde Laan
-Version: 1.0.2
+Version: 1.1.0
 Author URI: http://www.freelancephp.net
 License: Dual licensed under the MIT and GPL licenses
 Text Domain: email-encoder-bundle
@@ -12,7 +12,7 @@ Domain Path: /languages
 */
 
 // constants
-if (!defined('EMAIL_ENCODER_BUNDLE_VERSION')) { define('EMAIL_ENCODER_BUNDLE_VERSION', '1.0.2'); }
+if (!defined('EMAIL_ENCODER_BUNDLE_VERSION')) { define('EMAIL_ENCODER_BUNDLE_VERSION', '1.1.0'); }
 if (!defined('EMAIL_ENCODER_BUNDLE_FILE')) { define('EMAIL_ENCODER_BUNDLE_FILE', __FILE__); }
 if (!defined('EMAIL_ENCODER_BUNDLE_KEY')) { define('EMAIL_ENCODER_BUNDLE_KEY', 'WP_Email_Encoder_Bundle'); }
 if (!defined('EMAIL_ENCODER_BUNDLE_DOMAIN')) { define('EMAIL_ENCODER_BUNDLE_DOMAIN', 'email-encoder-bundle'); }
@@ -21,8 +21,8 @@ if (!defined('EMAIL_ENCODER_BUNDLE_ADMIN_PAGE')) { define('EMAIL_ENCODER_BUNDLE_
 
 // check plugin compatibility
 if (isset($wp_version)
-            AND version_compare(preg_replace('/-.*$/', '', $wp_version), '3.4', '>=')
-            AND version_compare(phpversion(), '5.2.4', '>=')) {
+            && version_compare(preg_replace('/-.*$/', '', $wp_version), '3.4', '>=')
+            && version_compare(phpversion(), '5.2.4', '>=')) {
 
     // include classes
     require_once('includes/class-eeb-admin.php');
@@ -30,7 +30,7 @@ if (isset($wp_version)
     require_once('includes/template-functions.php');
 
     // create instance
-    $EebSite = new EebSite;
+    $Eeb_Site = Eeb_Site::getInstance();
 
     // handle AJAX request
     if (!empty($_GET['ajaxEncodeEmail'])):
@@ -39,14 +39,14 @@ if (isset($wp_version)
         $email = $_GET['email'];
         $display = (empty($_GET['display'])) ? $email : $_GET['display'];
 
-        echo $EebSite->encode_email($email, $display, '', $method, TRUE);
+        echo $Eeb_Site->encode_email($email, $display, '', $method, true);
         exit;
     endif;
 
     // for testing purposes
-    if (file_exists(dirname(__FILE__) . '/../../wp-plugin-tester/tests/test-email-encoder-bundle.php')) {
-        require_once('/../../wp-plugin-tester/wp-plugin-tester.php');
-        require_once('/../../wp-plugin-tester/tests/test-email-encoder-bundle.php');
+    if (file_exists($_SERVER['DOCUMENT_ROOT'] . 'wp/plugins/wp-plugin-tester/tests/test-email-encoder-bundle.php')) {
+        require_once($_SERVER['DOCUMENT_ROOT'] . 'wp/plugins/wp-plugin-tester/wp-plugin-tester.php');
+        require_once($_SERVER['DOCUMENT_ROOT'] . 'wp/plugins/wp-plugin-tester/tests/test-email-encoder-bundle.php');
     }
 
 } else {
