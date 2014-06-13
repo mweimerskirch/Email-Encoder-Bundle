@@ -43,12 +43,6 @@ if (isset($wp_version)
         exit;
     endif;
 
-    // for testing purposes
-    if (file_exists($_SERVER['DOCUMENT_ROOT'] . 'wp/plugins/wp-plugin-tester/tests/test-email-encoder-bundle.php')) {
-        require_once($_SERVER['DOCUMENT_ROOT'] . 'wp/plugins/wp-plugin-tester/wp-plugin-tester.php');
-        require_once($_SERVER['DOCUMENT_ROOT'] . 'wp/plugins/wp-plugin-tester/tests/test-email-encoder-bundle.php');
-    }
-
 } else {
 
     // set error message
