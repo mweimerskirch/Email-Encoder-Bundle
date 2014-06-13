@@ -2,38 +2,33 @@
 Contributors: freelancephp
 Tags: email address, protect, antispam, mailto, spambot, secure, e-mail, email, mail, obfuscate, encode, encoder, encrypt, hide, bot, crawl, spider, robots, spam, protection, harvest, harvesting, security
 Requires at least: 3.4.0
-Tested up to: 3.8.1
-Stable tag: 1.1.0
+Tested up to: 3.9.1
+Stable tag: 1.2.0
 
-Encode mailto links, email addresses or any text (like phone numbers) and hide them from spambots. All mailto links in your posts, pages, comments and (text) widgets will be protected immediatly after activation.
+Encode mailto links, email addresses, phone numbers and any text to hide them from (spam)bots. Mailto links will be protected automatically after activating plugin.
 
 == Description ==
 
-Encode mailto links, email addresses or any text (like phone numbers) and hide them from spambots. All mailto links in your posts, pages, comments and (text) widgets will be protected immediatly after activation.
+Encode mailto links, email addresses, phone numbers and any text to hide them from (spam)bots.
 
 = Features =
-* Protect mailto links
-* Protect plain email addresses
-* Protect your RSS feeds
-* Encode any text (like phone numbers)
-* Shortcodes, template functions, action and filter hooks, Encoder Form and more...
+* Protect mailto links and plain email addresses
+* Protect phone numbers (or any text/html)
+* Also protect your RSS feeds
+* Use shortcodes, template functions, action and filter hooks
+* Use the Encoder Form to manually create encoded scripts
 
 = Easy to use  =
-The plugin works out-of-the-box. All mailto links in your posts, pages, comments and (text) widgets will be encoded (by default).
-If you also want to encode plain email address as well, you have to check that option.
+After activating the plugin all mailto links will be protected automatically.
+You could use shortcodes or template functions to protect plain email addresses, phone numbers or other text.
 
-= Help =
-* Documentation - Check the Help tab on the plugin Admin page
+= Support =
+* Documentation - When activated check the "Help"-tab on the plugin options page
 * [FAQ](http://wordpress.org/extend/plugins/email-encoder-bundle/faq/)
-* [Report a problem](http://wordpress.org/support/plugin/email-encoder-bundle#postform)
-
-= Github =
-I published the code on [Github](https://github.com/freelancephp/Email-Encoder-Bundle) so anybody can commit code changes.
+* [Github](https://github.com/freelancephp/Email-Encoder-Bundle)
 
 = Like this plugin? =
-No donation needed.
-If you want to support, just [rate this plugin](http://wordpress.org/support/view/plugin-reviews/email-encoder-bundle).
-And/or place [a comment on my blog](http://www.freelancephp.net/email-encoder-php-class-wp-plugin/).
+[Send Your Review](http://wordpress.org/support/view/plugin-reviews/email-encoder-bundle).
 
 == Installation ==
 
@@ -121,6 +116,9 @@ It's possible to filter all widgets by using the Widget Logic plugin and activat
 * Title icon on Admin Options Page was made by [Jack Cai](http://www.doublejdesign.co.uk/)
 
 == Changelog ==
+
+= 1.2.0 =
+* Added filter for Encoder Form content
 
 = 1.1.0 =
 * Added filters for changing regular expression for mailto links and email addresses
