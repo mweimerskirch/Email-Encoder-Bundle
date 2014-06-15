@@ -44,13 +44,20 @@ You could use shortcodes or template functions to protect plain email addresses,
 In the posts you can use this shortcode:
 `[eeb_email email="myname@test.nl" display="My Email"]`
 
-By default mailto links like this will also be encoded:
+But mailto links will be encoded automatically (option is on by default):
 `<a href="mailto:myname@test.nl">My Email</a>`
 
-The default method is `JS Rot13` the following output will be created in the source code of the page:
+The source of the page will now contain encoded script, like:
 `<script type="text/javascript">/*<![CDATA[*/ML="mo@k<insc:r.y=-Ehe a\">f/lMt";MI="4CB8HC77=D0C5HJ1>H563DB@:AF=D0C5HJ190<6C0A2JA7J;6HDBBJ5JHA=DI<B?0C5HDEI<B?0C5H4GCE";OT="";for(j=0;j<MI.length;j++){OT+=ML.charAt(MI.charCodeAt(j)-48);}document.write(OT);/*]]>*/</script><noscript>*protected email*</noscript>`
 
 This code is not readable by spambots and protects your email address.
+
+= How do I encode phone nummbers or other text? =
+
+Just use the following shortcode within your posts:
+`[eeb_content]35-01235-468113[/eeb_content]`
+
+For other parts of your site you can use the template function `eeb_content()`.
 
 = Email address in a form field is being encoded in a strange way. What to do? =
 
@@ -118,7 +125,7 @@ It's possible to filter all widgets by using the Widget Logic plugin and activat
 == Changelog ==
 
 = 1.2.0 =
-* Added filter for Encoder Form content
+* Added filter for Encoder Form content (eeb_form_content)
 
 = 1.1.0 =
 * Added filters for changing regular expression for mailto links and email addresses
