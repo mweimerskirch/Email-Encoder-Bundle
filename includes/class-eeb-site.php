@@ -330,7 +330,8 @@ CSS;
      */
 
     public function encode_content($content, $method = null, $no_html_checked = false) {
-        $content = $this->charset_decode_utf_8($content);
+        // doesn't work with javascript encoding
+//        $content = $this->charset_decode_utf_8($content);
 
         // get encode method
         $method = $this->get_method($method, $this->method);
