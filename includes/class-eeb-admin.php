@@ -18,7 +18,6 @@ abstract class Eeb_Admin {
      * @var array
      */
     private $default_options = array(
-        'version' => null,
         'method' => 'enc_ascii',
         'encode_mailtos' => 1,
         'encode_emails' => 0,
@@ -109,8 +108,6 @@ abstract class Eeb_Admin {
      * Set options from save values or defaults
      */
     private function set_options() {
-        $upgrade = false;
-
         // first set defaults
         $this->options = $this->default_options;
 
@@ -119,49 +116,26 @@ abstract class Eeb_Admin {
 
         // backwards compatible (old values)
         if (empty($saved_options)) {
+            // check old values
             $saved_options = get_option(EMAIL_ENCODER_BUNDLE_KEY . 'options');
 
             // cleanup old values
             delete_option(EMAIL_ENCODER_BUNDLE_KEY . 'options');
-        }
-
-        $version = get_option('eeb_version');
-        if ($version !== false) {
-            $saved_options['version'] = $version;
-
-            // cleanup old value
-            delete_option('eeb_version');
-        }
-
-        // set all options
-        if (!empty($saved_options)) {
-            $upgrade = true;
-
+        } else {
             foreach ($saved_options AS $key => $value) {
                 $this->options[$key] = $value;
             }
         }
 
-        if (!isset($saved_options['version']) || $saved_options['version'] != EMAIL_ENCODER_BUNDLE_VERSION) {
-            if (empty($saved_options['version'])) {
-                if ($upgrade) {
-                // upgrade from version < 1.0.0
-                    $this->options['support_deprecated_names'] = 1;
-                    $this->options['shortcodes_in_widgets'] = 1;
-
-                    //update_option(EMAIL_ENCODER_BUNDLE_OPTIONS_NAME, $this->options);
-                } else {
-                // first time
-                    $this->initial_metabox_settings = true;
-                }
-            } else {
-            // upgrading from version >= 1.0.0
-
-            }
-
-            // update version
-            update_option(EMAIL_ENCODER_BUNDLE_OPTIONS_NAME, $this->options);
-        }
+        // @todo Update current version value
+//        $version = get_option('eeb_version');
+//        if ($version !== EMAIL_ENCODER_BUNDLE_VERSION) {
+//            update_option('eeb_version', $version);
+//            delete_option('eeb_version');
+//
+//            // on first time loading
+//            $this->initial_metabox_settings = true;
+//        }
 
         // set encode method
         $this->method = $this->get_method($this->options['method'], 'enc_ascii');
