@@ -251,6 +251,7 @@ CSS;
      */
     public function shortcode_email_encoder_form() {
         // add style and script for ajax encoder
+//        wp_enqueue_script('email_encoder', plugins_url('js/src/email-encoder-bundle.js', EMAIL_ENCODER_BUNDLE_FILE), array('jquery'), EMAIL_ENCODER_BUNDLE_VERSION);
         wp_enqueue_script('email_encoder', plugins_url('js/email-encoder-bundle.min.js', EMAIL_ENCODER_BUNDLE_FILE), array('jquery'), EMAIL_ENCODER_BUNDLE_VERSION);
 
         return $this->get_encoder_form();
@@ -487,7 +488,7 @@ CSS;
 
         // break string into array of characters, we can't use string_split because its php5 only
         $split = preg_split('||', $string);
-        $out =  '<script type="text/javascript">' . "eval(unescape('";
+        $out =  '<script type="text/javascript">' . "eval(decodeURIComponent('";
 
         foreach ($split as $c) {
             // preg split will return empty first and last characters, check for them and ignore
