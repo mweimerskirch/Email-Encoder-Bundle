@@ -460,7 +460,7 @@ abstract class Eeb_Admin {
                     <th><?php _e('Choose admin menu position', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></th>
                     <td><label><input type="checkbox" id="<?php echo EMAIL_ENCODER_BUNDLE_OPTIONS_NAME ?>[own_admin_menu]" name="<?php echo EMAIL_ENCODER_BUNDLE_OPTIONS_NAME ?>[own_admin_menu]" value="1" <?php checked('1', (int) $options['own_admin_menu']); ?> />
                             <span><?php _e('Show as main menu item.', EMAIL_ENCODER_BUNDLE_DOMAIN) ?></span>
-                             <br /><span class="description">When disabled this page will be available under "General settings".</span>
+                             <br /><span class="description">When disabled this page will be available under "<?php _e('Settings') ?>".</span>
                         </label>
                     </td>
                 </tr>
