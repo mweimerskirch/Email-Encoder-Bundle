@@ -433,6 +433,9 @@ CSS;
     private function enc_ascii($value) {
         $mail_link = $value;
 
+        // first encode, so special chars can be supported
+        $mail_link = $this->encodeURIComponent($mail_link);
+        
         $mail_letters = '';
 
         for ($i = 0; $i < strlen($mail_link); $i ++) {
@@ -461,19 +464,24 @@ CSS;
         return '<script type="text/javascript">'
                 . '(function(){'
                 . 'var ml="'. $mail_letters_enc .'",mi="'. $mail_indices .'",o="";'
-//                . 'console.log("-----");'
-//                . 'console.log("' . $mail_letters_enc . '");'
-//                . 'console.log("' . $this->encodeURIComponent($mail_letters_enc) . '");'
-//                . 'var test = decodeURIComponent(\'' . $this->encodeURIComponent($mail_letters_enc) . '\');'
-//                . 'test = test.replace("\", "");'
-//                . 'console.log(test);'
                 . 'for(var j=0,l=mi.length;j<l;j++){'
                 . 'o+=ml.charAt(mi.charCodeAt(j)-48);'
-                . '}document.write(o);'
+                . '}document.write(decodeURIComponent(o));' // decode at the end, this way special chars can be supported
                 . '}());'
                 . '</script><noscript>'
                 . $this->options['protection_text']
                 . '</noscript>';
+    }
+
+    /**
+     * This is the opponent of JavaScripts decodeURIComponent()
+     * @link http://stackoverflow.com/questions/1734250/what-is-the-equivalent-of-javascripts-encodeuricomponent-in-php
+     * @param string $str
+     * @return string
+     */
+    private function encodeURIComponent($str) {
+        $revert = array('%21'=>'!', '%2A'=>'*', '%27'=>"'", '%28'=>'(', '%29'=>')');
+        return strtr(rawurlencode($str), $revert);
     }
 
     /**
