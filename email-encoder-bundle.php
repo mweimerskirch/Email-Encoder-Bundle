@@ -35,9 +35,9 @@ if (isset($wp_version)
     // handle AJAX request
     if (!empty($_GET['ajaxEncodeEmail'])):
         // input vars
-        $method = $_GET['method'];
-        $email = $_GET['email'];
-        $display = (empty($_GET['display'])) ? $email : $_GET['display'];
+        $method = sanitize_text_field($_GET['method']);
+        $email = sanitize_text_field($_GET['email']);
+        $display = (empty($_GET['display'])) ? $email : sanitize_text_field($_GET['display']);
 
         echo $Eeb_Site->encode_email($email, $display, '', $method, true);
         exit;
